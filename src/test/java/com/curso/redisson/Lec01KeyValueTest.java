@@ -47,6 +47,18 @@ public class Lec01KeyValueTest extends BaseTest {
                 .verifyComplete();
 
         //extend
+        sleep(5000);
+        Mono<Boolean> mono = bucket.expire(60, TimeUnit.SECONDS);
+        StepVerifier.create(mono)
+                .expectNext(true)
+                .verifyComplete();
+
+        var ttl = bucket.remainTimeToLive()
+                    .doOnNext(System.out::println)
+                    .then();
+
+        StepVerifier.create(ttl)
+                .verifyComplete();
 
     }
 }
