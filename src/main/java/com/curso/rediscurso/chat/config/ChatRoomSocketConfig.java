@@ -21,6 +21,6 @@ public class ChatRoomSocketConfig {
         Map<String, WebSocketHandler>  map = Map.of(
           "/chat" , chatRoomService
         );
-        return new SimpleUrlHandlerMapping(map);
+        return new SimpleUrlHandlerMapping(map, -1); //-1 -> darle prioridad por sobre los controladores convencionales
     }
 }

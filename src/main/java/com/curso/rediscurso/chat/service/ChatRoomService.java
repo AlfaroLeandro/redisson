@@ -1,5 +1,6 @@
 package com.curso.rediscurso.chat.service;
 
+import org.redisson.api.RListReactive;
 import org.redisson.api.RedissonReactiveClient;
 import org.redisson.client.codec.StringCodec;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,12 @@ public class ChatRoomService implements WebSocketHandler {
         //contains url
         String room = getChatRoomName(session);
         var topic = this.client.getTopic(room, StringCodec.INSTANCE);
+        RListReactive<String> list = this.client.getList("history:" + room, StringCodec.INSTANCE);
 
         //subscribe -> escucha el topic
         session.receive()
                 .map(WebSocketMessage::getPayloadAsText)
-                        .flatMap(topic::publish)
+                        .flatMap(msg -> list.add(msg).then(topic.publish(msg)))
                         .doOnError(System.out::println)
                         .doFinally(s -> System.out.println("Susbscriber finally " + s))
                         .subscribe();
@@ -34,6 +36,7 @@ public class ChatRoomService implements WebSocketHandler {
 
         // publisher
         var flux = topic.getMessages(String.class)
+                        .startWith(list.iterator())
                         .map(session::textMessage)
                         .doOnError(System.out::println)
                         .doFinally(s -> System.out.println("publisher finally " + s));
@@ -42,7 +45,7 @@ public class ChatRoomService implements WebSocketHandler {
 
     private String getChatRoomName(WebSocketSession socketSession){
         var uri = socketSession.getHandshakeInfo().getUri();
-        UriComponentsBuilder.fromUri(uri)
+        return UriComponentsBuilder.fromUri(uri)
                 .build()
                 .getQueryParams()
                 .toSingleValueMap()

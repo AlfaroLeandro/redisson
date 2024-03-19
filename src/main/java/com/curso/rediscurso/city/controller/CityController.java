@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
-@RestController
-@RequestMapping("city")
+//@RestController
+//@RequestMapping("city")
 public class CityController {
 
 
-    @Autowired
+//    @Autowired
     private CityService cityService;
 
     @GetMapping("{zipCode}")
